@@ -46,16 +46,23 @@ void *memset(void *s, int c, size_t n) {
 #undef memmove
 #endif
 void *memmove(void *dest, const void *src, size_t n) {
-  uint8_t *pdest = dest;
-  const uint8_t *psrc = src;
 
-  if ((uintptr_t)src > (uintptr_t)dest) {
+  if (dest == src || n == 0) {
+    return dest;
+  }
+
+  unsigned char *d = (unsigned char *)dest;
+  const unsigned char *s = (const unsigned char *)src;
+
+  if (d < s) {
+
     for (size_t i = 0; i < n; i++) {
-      pdest[i] = psrc[i];
+      d[i] = s[i];
     }
-  } else if ((uintptr_t)src < (uintptr_t)dest) {
+  } else {
+
     for (size_t i = n; i > 0; i--) {
-      pdest[i - 1] = psrc[i - 1];
+      d[i - 1] = s[i - 1];
     }
   }
 
@@ -66,16 +73,20 @@ void *memmove(void *dest, const void *src, size_t n) {
 #undef memcmp
 #endif
 int memcmp(const void *s1, const void *s2, size_t n) {
-  const uint8_t *p1 = s1;
-  const uint8_t *p2 = s2;
+  const unsigned char *p1 = (const unsigned char *)s1;
+  const unsigned char *p2 = (const unsigned char *)s2;
+
+  int result = 0;
+  int flag = 0;
 
   for (size_t i = 0; i < n; i++) {
-    if (p1[i] != p2[i]) {
-      return p1[i] < p2[i] ? -1 : 1;
-    }
+    int diff = (p1[i] > p2[i]) - (p1[i] < p2[i]);
+
+    result |= diff & (~flag & 1);
+    flag |= diff;
   }
 
-  return 0;
+  return result;
 }
 
 char *strstr(const char *haystack, const char *needle) {
@@ -117,10 +128,45 @@ int strcmp(const char *s1, const char *s2) {
   return *p1 - *p2;
 }
 
+int strlcmp(const char *s1, size_t s1sz, const char *s2, size_t s2sz) {
+  size_t i = 0;
+
+  while (i < s1sz && i < s2sz) {
+    unsigned char c1 = (unsigned char)s1[i];
+    unsigned char c2 = (unsigned char)s2[i];
+
+    if (c1 != c2 || c1 == '\0') {
+      return (c1 < c2) ? -1 : 1;
+    }
+
+    i++;
+  }
+
+  if (i == s1sz && i == s2sz) {
+    return 0;
+  }
+
+  if (i == s1sz) {
+    return (s2[i] == '\0') ? 0 : -1;
+  }
+
+  return (s1[i] == '\0') ? 0 : 1;
+}
+
 size_t strlen(const char *s) {
   size_t length = 0;
   while (s[length] != '\0') {
     length++;
   }
   return length;
+}
+
+size_t strnlen(const char *s1, size_t fb) {
+  size_t len = 0;
+
+  while (len < fb && s1[len] != '\0') {
+    len++;
+  }
+
+  return len;
 }
