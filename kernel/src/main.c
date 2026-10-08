@@ -1,15 +1,15 @@
 #include <arch/control.h>
+#include <arch/irq/exceptions.h>
 #include <arch/paging.h>
 #include <drivers/api.h>
 #include <limine.h>
 #include <limine_requests.h>
 #include <mm/kern/slub.h>
 #include <mm/physical/allocator.h>
-#include <security/crypto/rng.h>
-
 #include <mm/virtual/page_table.h>
 #include <mm/virtual/vma/vma.h>
 #include <scheduler/smp/cpus.h>
+#include <security/crypto/rng.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -56,5 +56,12 @@ void kmain(void) {
   void *a = kzalloc(1028);
   pr_info("0x%p", a);
 
+  idt_init();
+  irq_dispatch_install();
+  irq_exceptions_install();
+  idt_load();
+  irq_enable();
+
+  asm volatile("ud2");
   hcf();
 }

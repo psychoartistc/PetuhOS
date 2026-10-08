@@ -1,9 +1,14 @@
 #ifndef PAGING_H_
 #define PAGING_H_
 
+/*
+ * paging.h
+ * paging functions */
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <utils/int.h>
 
 #define PAGES_IN_SUPERPAGE 512
 #define PAGES_IN_MEGAPAGE 262144
@@ -45,10 +50,6 @@
   (P_X86_PRESENT | P_X86_WRITABLE | P_X86_USER | P_X86_WRITETHRU |             \
    P_X86_NOCACHE | P_X86_NX)
 
-/*
- * paging.h
- * paging functions */
-
 static inline void local_invlpg(uintptr_t v) {
   asm volatile("invlpg (%0)" ::"r"(v) : "memory");
 }
@@ -61,6 +62,12 @@ static inline uint64_t read_cr3(void) {
 
 static inline void write_cr3(uint64_t cr3) {
   asm volatile("movq %0, %%cr3" : : "r"(cr3) : "memory");
+}
+
+static inline u64 read_cr2(void) {
+  u64 v;
+  asm volatile("mov %%cr2, %0" : "=r"(v));
+  return v;
 }
 
 static inline bool megapages_supported() {
