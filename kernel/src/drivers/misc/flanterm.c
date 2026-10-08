@@ -35,7 +35,7 @@ static void ft_write(const char *str) {
   if (!s_ftCtx)
     return;
 
-  flanterm_write(s_ftCtx, str, strlen(str));
+  flanterm_write(s_ftCtx, str, strnlen(str, 512));
 }
 
 static void ft_write_color(const struct flanterm_log_color *color) {

@@ -24,10 +24,10 @@ int symbols_init() {
   for (size_t i = 0; i < ehdr->e_shnum; i++) {
     char *name = shstrtab + shdr[i].sh_name;
 
-    if (strcmp(name, ".symtab") == 0) {
+    if (strlcmp(name, 128, ".symtab", 8) == 0) {
       s_ksymbols.symtab = (elf64_sym_t *)((uintptr_t)ehdr + shdr[i].sh_offset);
       s_ksymbols.num_symbols = shdr[i].sh_size / sizeof(elf64_sym_t);
-    } else if (strcmp(name, ".strtab") == 0) {
+    } else if (strlcmp(name, 128, ".symtab", 8) == 0) {
       s_ksymbols.strtab = (char *)((uintptr_t)ehdr + shdr[i].sh_offset);
     }
   }
