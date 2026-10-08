@@ -5,12 +5,25 @@
 #ifdef memcpy
 #undef memcpy
 #endif
-void *memcpy(void *restrict dest, const void *restrict src, size_t n) {
-  uint8_t *pdest = dest;
-  const uint8_t *psrc = src;
 
-  for (size_t i = 0; i < n; i++) {
-    pdest[i] = psrc[i];
+void *memcpy(void *dest, const void *src, size_t n) {
+  if (dest == NULL || src == NULL || n == 0) {
+    return dest;
+  }
+
+  char *d = (char *)dest;
+  const char *s = (const char *)src;
+
+  if (d > s && d < s + n) {
+    d += n;
+    s += n;
+    while (n--) {
+      *(--d) = *(--s);
+    }
+  } else {
+    while (n--) {
+      *d++ = *s++;
+    }
   }
 
   return dest;
