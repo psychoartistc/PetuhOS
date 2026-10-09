@@ -56,7 +56,6 @@ void kmain(void) {
   void *a = kzalloc(1028);
   pr_info("0x%p", a);
 
-  gdt_init;
   idt_init();
   irq_dispatch_install();
   irq_exceptions_install();
