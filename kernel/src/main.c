@@ -3,6 +3,7 @@
 #include <arch/paging.h>
 #include <arch/stack/alloc.h>
 #include <arch/stack/enter.h>
+#include <arch/stack/utils.h>
 #include <arch/tables/gdt.h>
 #include <arch/tables/ist.h>
 #include <drivers/api.h>
@@ -23,14 +24,24 @@
 #include <utils/panic.h>
 #include <utils/symbols.h>
 
+void trigger_double_fault_via_idt(void) {
+  struct {
+    unsigned short limit;
+    unsigned long base;
+  } __attribute__((packed)) idtr;
+
+  idtr.limit = 0;
+  idtr.base = 0x0;
+
+  asm volatile("lidt %0" : : "m"(idtr) : "memory");
+  asm volatile("int $3");
+}
+
 void bsp_entry(void *arg) {
   (void)arg;
-  pr_info("hello from bsp stack!");
+  pr_info("hello from bsp stack! at 0x%p", read_rsp());
+  trigger_double_fault_via_idt();
 
-  volatile int a = 1;
-  volatile int b = 0;
-  volatile int c = a / b;
-  pr_info("%d", c);
   hcf();
 }
 

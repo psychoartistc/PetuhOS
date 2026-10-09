@@ -10,6 +10,7 @@ struct cpu *current_cpu() { return (struct cpu *)rdmsr(MSR_GS_BASE); }
 
 noreturn void ap_entry(struct limine_mp_info *info) {
   (void)info;
+
   hcf();
   unreachable();
 }

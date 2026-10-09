@@ -1,4 +1,6 @@
+#include <arch/irq/exceptions.h>
 #include <arch/irq/irq_dispatch.h>
+#include <security/crypto/rng.h>
 #include <stddef.h>
 #include <utils/logging.h>
 
@@ -9,8 +11,22 @@ static void *s_args[IDT_ENTRY_COUNT] = {0};
 
 void irq_dispatch_install() {
   for (size_t i = 0; i < IDT_ENTRY_COUNT; i++) {
-    int r =
-        idt_set_gate((u8)i, (idt_handler_t)g_isrStubTable[i], 0x08, 0, 0x8E);
+    u8 ist = 0;
+    if (i == CPU_EXCEPT_DOUBLE_FAULT || i == CPU_EXCEPT_NMI ||
+        i == CPU_EXCEPT_DEBUG || i == CPU_EXCEPT_MACHINE_CHECK) {
+      // evil math
+      u8 byte;
+
+      do {
+        rng_fill_bytes((char *)&byte, 1, 1);
+      } while (byte >= 252);
+
+      ist = (u8)(byte % 7u + 1u);
+      pr_info("[irq_dispatch] using ist %d for interrupt vector %d", ist, i);
+    }
+
+    int r = idt_set_gate((u8)i, (idt_handler_t)g_isrStubTable[i], 0x08, (u8)ist,
+                         0x8E);
     if (r < 0) {
       pr_error("[irq_dispatch] error %d when installing isrs", r);
       continue;
