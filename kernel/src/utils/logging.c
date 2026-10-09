@@ -10,11 +10,15 @@ void logs_add_handler(log_handler_t handler) {
 }
 
 void logs_poll(uint8_t l, const char *fmt, ...) {
+  va_list va;
+  va_start(va, fmt);
+  logs_vpoll(l, fmt, va);
+  va_end(va);
+}
+
+void logs_vpoll(uint8_t l, const char *fmt, va_list va) {
   if (unlikely(l > L_MAXLEVEL || !fmt))
     return;
-
-  va_list args1;
-  va_start(args1, fmt);
 
   for (size_t i = 0; i < s_handlersCount; i++) {
     log_handler_t handler = s_handlers[i];
@@ -22,9 +26,9 @@ void logs_poll(uint8_t l, const char *fmt, ...) {
       continue;
 
     va_list args;
-    va_copy(args, args1);
+    va_copy(args, va);
     handler(l, fmt, args);
     va_end(args);
   }
-  va_end(args1);
+  va_end(va);
 }

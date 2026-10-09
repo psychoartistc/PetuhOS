@@ -25,6 +25,7 @@ typedef void (*log_handler_t)(uint8_t level, const char *fmt, va_list args);
 
 void logs_add_handler(log_handler_t handler);
 void logs_poll(uint8_t l, const char *fmt, ...);
+void logs_vpoll(uint8_t l, const char *fmt, va_list va);
 
 #define pr_trace(fmt, ...)                                                     \
   logs_poll(L_TRACE, "[%s:%d] " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
@@ -42,7 +43,7 @@ void logs_poll(uint8_t l, const char *fmt, ...);
   logs_poll(L_CRITICAL, "[%s:%d] " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define printk(fmt, ...) logs_poll(L_PRINTK, fmt, ##__VA_ARGS__)
-#define vprintk(fmt, va) logs_poll(L_PRINTK, fmt, va);
+#define vprintk(fmt, va) logs_vpoll(L_PRINTK, fmt, va);
 
 static inline const char *logs_level_str(uint8_t level) {
   switch (level) {

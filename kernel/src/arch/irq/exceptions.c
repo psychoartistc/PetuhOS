@@ -3,6 +3,7 @@
 #include <arch/paging.h>
 #include <stddef.h>
 #include <utils/branching.h>
+#include <utils/logging.h>
 #include <utils/panic.h>
 
 static const char *EXCEPTION_NAMES[32] = {"Divide error",
@@ -40,6 +41,7 @@ static const char *EXCEPTION_NAMES[32] = {"Divide error",
 
 static void irq_except_handler(interrupt_frame_t *frame, void *arg) {
   (void)arg;
+
   irq_disable();
   u64 intNo = frame->int_no;
   if (unlikely(intNo > 32))

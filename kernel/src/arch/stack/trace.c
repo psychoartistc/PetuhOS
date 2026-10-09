@@ -1,4 +1,4 @@
-#include <arch/stack_trace.h>
+#include <arch/stack/trace.h>
 #include <utils/branching.h>
 #include <utils/logging.h>
 #include <utils/symbols.h>

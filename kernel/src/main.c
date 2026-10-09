@@ -1,6 +1,10 @@
 #include <arch/control.h>
 #include <arch/irq/exceptions.h>
 #include <arch/paging.h>
+#include <arch/stack/alloc.h>
+#include <arch/stack/enter.h>
+#include <arch/tables/gdt.h>
+#include <arch/tables/ist.h>
 #include <drivers/api.h>
 #include <limine.h>
 #include <limine_requests.h>
@@ -18,6 +22,17 @@
 #include <utils/memory.h>
 #include <utils/panic.h>
 #include <utils/symbols.h>
+
+void bsp_entry(void *arg) {
+  (void)arg;
+  pr_info("hello from bsp stack!");
+
+  volatile int a = 1;
+  volatile int b = 0;
+  volatile int c = a / b;
+  pr_info("%d", c);
+  hcf();
+}
 
 void kmain(void) {
   symbols_init();
@@ -53,15 +68,26 @@ void kmain(void) {
     drv->initialized = true;
   }
 
-  void *a = kzalloc(1028);
-  pr_info("0x%p", a);
+  cpu_t *bsp = current_cpu();
+  uintptr_t kstack = stack_alloc_kern();
+
+  bsp->kern_stack_top = kstack + (KERN_STACK_PAGES * PAGE_SIZE);
+  for (size_t i = 0; i < IST_STACK_COUNT; ++i) {
+    uintptr_t istack = stack_alloc_ist();
+
+    bsp->ist_stack_tops[i] = istack + (IST_STACK_PAGES * PAGE_SIZE);
+  }
+
+  cpu_init(bsp);
 
   idt_init();
+  idt_load();
+
   irq_dispatch_install();
   irq_exceptions_install();
-  idt_load();
-  irq_enable();
 
-  asm volatile("ud2");
+  idt_load();
+
+  stack_enter(bsp->kern_stack_top, bsp_entry, NULL);
   hcf();
 }
